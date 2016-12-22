@@ -1,6 +1,7 @@
 package com.example.maximbravo.inventory3;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -18,6 +19,9 @@ import com.example.maximbravo.inventory3.data.ProductDbHelper;
 
 import org.w3c.dom.Text;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
     private TextView output;
     private ProductDbHelper mDbHelper;
@@ -32,8 +36,9 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+                showDummyProducts();
             }
         });
 
@@ -62,6 +67,61 @@ public class MainActivity extends AppCompatActivity {
 
         // Insert the new row, returning the primary key value of the new row
         long newRowId = db.insert(ProductEntry.TABLE_NAME, null, values);
+
+        showDummyProducts();
+    }
+    public void showDummyProducts(){
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        // Define a projection that specifies which columns from the database
+        // you will actually use after this query.
+        String[] projection = {
+                ProductEntry._ID,
+                ProductEntry.COLUMN_PRODUCT_NAME,
+                ProductEntry.COLUMN_PRODUCT_QUANTITY,
+                ProductEntry.COLUMN_PRODUCT_PRICE
+        };
+
+//        // Filter results WHERE "title" = 'My Title'
+//        String selection = ProductEntry.COLUMN_NAME_TITLE + " = ?";
+//        String[] selectionArgs = { "My Title" };
+
+        Cursor cursor = db.query(
+                ProductEntry.TABLE_NAME,                  // The table to query
+                projection,                               // The columns to return
+                null,                                // The columns for the WHERE clause
+                null,                            // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                null                                      // The sort order
+        );
+
+        //put all data in a list of Strings
+        ArrayList<String> itemsStringValues = new ArrayList<>();
+        String header = "_id   name   quantity   price"
+                + "\n-----------------------------";
+        itemsStringValues.add(header);
+        while(cursor.moveToNext()) {
+            long itemId = cursor.getLong(cursor.getColumnIndexOrThrow(ProductEntry._ID));
+            String itemName = cursor.getString(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_NAME));
+            int itemquantity = cursor.getInt(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_QUANTITY));
+            double itemprice = cursor.getDouble(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_PRICE));
+
+            String stringRep = itemId + "   " +
+                    itemName + "   " +
+                    itemquantity + "   " +
+                    itemprice;
+            itemsStringValues.add(stringRep);
+        }
+        cursor.close();
+
+        output.setText("");
+        //add too textView
+        for(int i = 0; i < itemsStringValues.size(); i++){
+            output.append(itemsStringValues.get(i));
+            output.append("\n");
+        }
+
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
