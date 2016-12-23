@@ -123,6 +123,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+    public void deleteProductAt(int position){
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        // Define 'where' part of query.
+        String selection = ProductEntry._ID;
+        // Specify arguments in placeholder order.
+        String[] selectionArgs = { ""+position };
+        // Issue SQL statement.
+        db.delete(ProductEntry.TABLE_NAME, selection, selectionArgs);
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
