@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.maximbravo.inventory3.DetailActivity">
+    <item
+        android:id="@+id/action_add_product"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_done"
+        app:showAsAction="always"
+        android:title="Save" />
+    <item
+        android:id="@+id/action_delete_product"
+        android:orderInCategory="100"
+        android:title="Delete Product"
+        app:showAsAction="never" />
+</menu>

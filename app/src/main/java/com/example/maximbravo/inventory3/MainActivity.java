@@ -1,11 +1,11 @@
 package com.example.maximbravo.inventory3;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -17,10 +17,7 @@ import android.widget.Toast;
 import com.example.maximbravo.inventory3.data.ProductContract.ProductEntry;
 import com.example.maximbravo.inventory3.data.ProductDbHelper;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private TextView output;
@@ -38,7 +35,9 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
 //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
 //                        .setAction("Action", null).show();
-                showDummyProducts();
+                //showDummyProducts();
+                Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -147,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_add_product) {
+        if (id == R.id.action_add_dummy_product) {
             Toast.makeText(this, "You clicked the Add Product menu item.", Toast.LENGTH_LONG).show();
             insertDummyProduct();
             return true;
