@@ -1,9 +1,11 @@
 package com.example.maximbravo.inventory3;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +13,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +26,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
     private TextView output;
     private ProductDbHelper mDbHelper;
+    private ProductCursorAdapter mCursorAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +52,22 @@ public class MainActivity extends AppCompatActivity {
         //initialize dbhelper
         mDbHelper = new ProductDbHelper(getApplicationContext());
 
+        ListView productListView = (ListView) findViewById(R.id.list);
+
+
+
+        mCursorAdapter = new ProductCursorAdapter(this, null);
+        productListView.setAdapter(mCursorAdapter);
+
+        productListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+               Toast.makeText(MainActivity.this, "You clicked on the " + id + " element", Toast.LENGTH_SHORT).show();
+            }
+        });
+        showDummyProducts();
+
+
 
     }
 
@@ -67,6 +88,11 @@ public class MainActivity extends AppCompatActivity {
         // Insert the new row, returning the primary key value of the new row
         long newRowId = db.insert(ProductEntry.TABLE_NAME, null, values);
 
+        showDummyProducts();
+    }
+    public void deleteTable(){
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        db.delete(ProductEntry.TABLE_NAME, null, null);
         showDummyProducts();
     }
     public void showDummyProducts(){
@@ -95,42 +121,11 @@ public class MainActivity extends AppCompatActivity {
                 null                                      // The sort order
         );
 
-        //put all data in a list of Strings
-        ArrayList<String> itemsStringValues = new ArrayList<>();
-        String header = "_id   name   quantity   price"
-                + "\n-----------------------------";
-        itemsStringValues.add(header);
-        while(cursor.moveToNext()) {
-            long itemId = cursor.getLong(cursor.getColumnIndexOrThrow(ProductEntry._ID));
-            String itemName = cursor.getString(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_NAME));
-            int itemquantity = cursor.getInt(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_QUANTITY));
-            double itemprice = cursor.getDouble(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_PRICE));
+        mCursorAdapter.swapCursor(cursor);
 
-            String stringRep = itemId + "   " +
-                    itemName + "   " +
-                    itemquantity + "   " +
-                    itemprice;
-            itemsStringValues.add(stringRep);
-        }
-        cursor.close();
-
-        output.setText("");
-        //add too textView
-        for(int i = 0; i < itemsStringValues.size(); i++){
-            output.append(itemsStringValues.get(i));
-            output.append("\n");
-        }
 
     }
-    public void deleteProductAt(int position){
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-        // Define 'where' part of query.
-        String selection = ProductEntry._ID;
-        // Specify arguments in placeholder order.
-        String[] selectionArgs = { ""+position };
-        // Issue SQL statement.
-        db.delete(ProductEntry.TABLE_NAME, selection, selectionArgs);
-    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -149,6 +144,10 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_add_dummy_product) {
             Toast.makeText(this, "You clicked the Add Product menu item.", Toast.LENGTH_LONG).show();
             insertDummyProduct();
+            return true;
+        }
+        if(id == R.id.action_delete_all_products){
+            deleteTable();
             return true;
         }
 
