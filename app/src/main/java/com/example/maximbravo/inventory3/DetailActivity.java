@@ -168,8 +168,8 @@ public class DetailActivity extends AppCompatActivity {
     public void orderMore(View view){
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setData(Uri.parse("mailto:")); // only email apps should handle this
-        intent.putExtra(Intent.EXTRA_EMAIL, email);
-        intent.putExtra(Intent.EXTRA_SUBJECT, "Order More " + name);
+        intent.putExtra(Intent.EXTRA_RESULT_RECEIVER, email);
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Order More " + nameEditText.getText().toString());
         if (intent.resolveActivity(getPackageManager()) != null) {
             startActivity(intent);
         }
