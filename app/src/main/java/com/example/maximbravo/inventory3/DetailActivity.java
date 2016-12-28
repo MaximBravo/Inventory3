@@ -1,5 +1,6 @@
 package com.example.maximbravo.inventory3;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -15,6 +16,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.maximbravo.inventory3.data.ProductContract;
 import com.example.maximbravo.inventory3.data.ProductContract.ProductEntry;
 import com.example.maximbravo.inventory3.data.ProductDbHelper;
 import com.example.maximbravo.inventory3.data.ProductDbManiplator;
@@ -34,9 +36,10 @@ public class DetailActivity extends AppCompatActivity {
 
     private Button incrementButton;
     private Button decrementButton;
-
+    private int position;
+    private boolean editmode = false;
     private ProductDbHelper mDbHelper;
-
+    private int id;
     private ProductDbManiplator mDbManipulator;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,8 +58,10 @@ public class DetailActivity extends AppCompatActivity {
         mDbManipulator = new ProductDbManiplator(this);
 
         Intent intent = getIntent();
-        int id = intent.getIntExtra("id", -1);
+        id = intent.getIntExtra("id", -1);
+        position = intent.getIntExtra("position", -1);
         if(id >= 0){
+            editmode = true;
             populatePageWith(id);
         }
 
@@ -130,11 +135,32 @@ public class DetailActivity extends AppCompatActivity {
             savePet = false;
         }
         if(savePet){
-            mDbManipulator.insertProductWithValues(name, quantity, price);
+            if(!editmode) {
+                mDbManipulator.insertProductWithValues(name, quantity, price);
+            } else {
+                updateRow();
+            }
             Intent backToParent = new Intent(DetailActivity.this, MainActivity.class);
             startActivity(backToParent);
         }
 
+    }
+    public void updateRow(){
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_NAME, nameEditText.getText().toString());
+        values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_QUANTITY, Integer.parseInt(quantityEditText.getText().toString()));
+        values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_PRICE, Double.parseDouble(priceEditText.getText().toString()));
+
+        String selection = ProductEntry._ID + " = ?";
+        String[] selectionArgs = { ""+(id+1) };
+
+        int count = db.update(
+                ProductEntry.TABLE_NAME,
+                values,
+                selection,
+                selectionArgs);
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

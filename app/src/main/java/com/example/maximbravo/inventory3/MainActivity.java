@@ -66,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
                Toast.makeText(MainActivity.this, "You clicked on the " + id + " element", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                 intent.putExtra("id", position);
+                intent.putExtra("position", id);
                 startActivity(intent);
             }
         });
