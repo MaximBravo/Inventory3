@@ -4,8 +4,13 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -14,12 +19,19 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.maximbravo.inventory3.data.ProductContract;
 import com.example.maximbravo.inventory3.data.ProductContract.ProductEntry;
 import com.example.maximbravo.inventory3.data.ProductDbHelper;
 import com.example.maximbravo.inventory3.data.ProductDbManiplator;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by Maxim Bravo on 12/24/2016.
@@ -36,6 +48,8 @@ public class DetailActivity extends AppCompatActivity {
     private double price;
     private String email;
 
+    private Bitmap imageBitmap;
+    private ImageView mImageView;
     private Button incrementButton;
     private Button decrementButton;
     private int position;
@@ -52,6 +66,8 @@ public class DetailActivity extends AppCompatActivity {
         quantityEditText = (EditText) findViewById(R.id.edit_product_quantity);
         priceEditText = (EditText) findViewById(R.id.edit_product_price);
         emailEditText = (EditText) findViewById(R.id.edit_supplier);
+
+        mImageView = (ImageView) findViewById(R.id.picture_result);
 
         quantity = Integer.parseInt(quantityEditText.getText().toString());
 
@@ -73,8 +89,14 @@ public class DetailActivity extends AppCompatActivity {
 
         }
 
+        showImage();
     }
 
+    public void showImage(){
+        if(imageBitmap != null){
+            mImageView.setImageBitmap(imageBitmap);
+        }
+    }
     public void populatePageWith(int id){
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
@@ -84,7 +106,8 @@ public class DetailActivity extends AppCompatActivity {
                 ProductEntry.COLUMN_PRODUCT_NAME,
                 ProductEntry.COLUMN_PRODUCT_PRICE,
                 ProductEntry.COLUMN_PRODUCT_QUANTITY,
-                ProductEntry.COLUMN_PRODUCT_EMAIL
+                ProductEntry.COLUMN_PRODUCT_EMAIL,
+                ProductEntry.COLUMN_PRODUCT_IMAGE
         };
 
 // Filter results WHERE "title" = 'My Title'
@@ -108,11 +131,13 @@ public class DetailActivity extends AppCompatActivity {
         int itemquantity = cursor.getInt(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_QUANTITY));
         double itemprice = cursor.getDouble(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_PRICE));
         String email = cursor.getString(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_EMAIL));
+        imageBitmap = getImage(cursor.getBlob(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_IMAGE)));
 
         nameEditText.setText(itemName);
         quantityEditText.setText(""+itemquantity);
         priceEditText.setText(""+itemprice);
         emailEditText.setText(email);
+        mImageView.setImageBitmap(imageBitmap);
         cursor.close();
     }
     public void increment(View view){
@@ -154,9 +179,13 @@ public class DetailActivity extends AppCompatActivity {
             Toast.makeText(this, "You must supply a price", Toast.LENGTH_SHORT).show();
             savePet = false;
         }
+        if(imageBitmap == null){
+            Toast.makeText(this, "You must take a picture", Toast.LENGTH_SHORT).show();
+            savePet = false;
+        }
         if(savePet){
             if(!editmode) {
-                mDbManipulator.insertProductWithValues(name, quantity, price, email);
+                mDbManipulator.insertProductWithValues(name, quantity, price, email, imageBitmap);
             } else {
                 updateRow();
             }
@@ -164,6 +193,23 @@ public class DetailActivity extends AppCompatActivity {
             startActivity(backToParent);
         }
 
+    }
+    static final int REQUEST_IMAGE_CAPTURE = 1;
+    public void picture(View view){
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            imageBitmap = (Bitmap) extras.get("data");
+            mImageView.setImageBitmap(imageBitmap);
+        }
     }
     public void orderMore(View view){
         Intent intent = new Intent(Intent.ACTION_SENDTO);
@@ -182,6 +228,7 @@ public class DetailActivity extends AppCompatActivity {
         values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_QUANTITY, Integer.parseInt(quantityEditText.getText().toString()));
         values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_PRICE, Double.parseDouble(priceEditText.getText().toString()));
         values.put(ProductEntry.COLUMN_PRODUCT_EMAIL, emailEditText.getText().toString());
+        values.put(ProductEntry.COLUMN_PRODUCT_IMAGE, getBytes(imageBitmap));
 
         String selection = ProductEntry._ID + " = ?";
         String[] selectionArgs = { ""+(id) };
@@ -191,6 +238,17 @@ public class DetailActivity extends AppCompatActivity {
                 values,
                 selection,
                 selectionArgs);
+    }
+    // convert from bitmap to byte array
+    public static byte[] getBytes(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 0, stream);
+        return stream.toByteArray();
+    }
+
+    // convert from byte array to bitmap
+    public static Bitmap getImage(byte[] image) {
+        return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
