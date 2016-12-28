@@ -1,6 +1,8 @@
 package com.example.maximbravo.inventory3;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +16,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.maximbravo.inventory3.data.ProductContract.ProductEntry;
+import com.example.maximbravo.inventory3.data.ProductDbHelper;
 import com.example.maximbravo.inventory3.data.ProductDbManiplator;
 
 /**
@@ -32,7 +35,7 @@ public class DetailActivity extends AppCompatActivity {
     private Button incrementButton;
     private Button decrementButton;
 
-    private ProductEntry mDbHelper;
+    private ProductDbHelper mDbHelper;
 
     private ProductDbManiplator mDbManipulator;
     @Override
@@ -48,10 +51,54 @@ public class DetailActivity extends AppCompatActivity {
         incrementButton = (Button) findViewById(R.id.increment_button);
         decrementButton = (Button) findViewById(R.id.decrement_button);
 
+        mDbHelper = new ProductDbHelper(this);
         mDbManipulator = new ProductDbManiplator(this);
+
+        Intent intent = getIntent();
+        int id = intent.getIntExtra("id", -1);
+        if(id >= 0){
+            populatePageWith(id);
+        }
 
     }
 
+    public void populatePageWith(int id){
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+// Define a projection that specifies which columns from the database
+// you will actually use after this query.
+        String[] projection = {
+                ProductEntry.COLUMN_PRODUCT_NAME,
+                ProductEntry.COLUMN_PRODUCT_PRICE,
+                ProductEntry.COLUMN_PRODUCT_QUANTITY
+        };
+
+// Filter results WHERE "title" = 'My Title'
+        String selection = ProductEntry._ID + " = ?";
+        String[] selectionArgs = { "" + id };
+
+
+
+        Cursor cursor = db.query(
+                ProductEntry.TABLE_NAME,                     // The table to query
+                projection,                               // The columns to return
+                null,                                // The columns for the WHERE clause
+                null,                            // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                null                                 // The sort order
+        );
+        cursor.moveToFirst();
+        cursor.move(id);
+        String itemName = cursor.getString(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_NAME));
+        int itemquantity = cursor.getInt(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_QUANTITY));
+        double itemprice = cursor.getDouble(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_PRICE));
+
+        nameEditText.setText(itemName);
+        quantityEditText.setText(""+itemquantity);
+        priceEditText.setText(""+itemprice);
+        cursor.close();
+    }
     public void increment(View view){
         quantity = Integer.parseInt(quantityEditText.getText().toString());
         quantityEditText.setText("" + (quantity+1));
