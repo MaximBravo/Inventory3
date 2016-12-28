@@ -1,6 +1,7 @@
 package com.example.maximbravo.inventory3;
 
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -11,6 +12,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -239,6 +241,45 @@ public class DetailActivity extends AppCompatActivity {
                 selection,
                 selectionArgs);
     }
+    private void showUnsavedChangesDialog(
+            DialogInterface.OnClickListener discardButtonClickListener) {
+        // Create an AlertDialog.Builder and set the message, and click listeners
+        // for the positive and negative buttons on the dialog.
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Would you like to discard changes?");
+        builder.setPositiveButton("Discard", discardButtonClickListener);
+        builder.setNegativeButton("Keep Editing", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked the "Keep editing" button, so dismiss the dialog
+                // and continue editing the pet.
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            }
+        });
+
+        // Create and show the AlertDialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+    @Override
+    public void onBackPressed() {
+
+
+        // Otherwise if there are unsaved changes, setup a dialog to warn the user.
+        // Create a click listener to handle the user confirming that changes should be discarded.
+        DialogInterface.OnClickListener discardButtonClickListener =
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        // User clicked "Discard" button, close the current activity.
+                        finish();
+                    }
+                };
+
+        // Show dialog that there are unsaved changes
+        showUnsavedChangesDialog(discardButtonClickListener);
+    }
     // convert from bitmap to byte array
     public static byte[] getBytes(Bitmap bitmap) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -256,7 +297,35 @@ public class DetailActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_detail, menu);
         return true;
     }
+    boolean result = false;
+    private void showDeleteConfirmationDialog() {
 
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Would you like to delete this product?");
+        builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id1) {
+                int input = id;
+
+                mDbManipulator.deleteProductAt(input);
+
+                Intent intent = new Intent(DetailActivity.this, MainActivity.class);
+                startActivity(intent);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            }
+        });
+
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+
+    }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -272,12 +341,7 @@ public class DetailActivity extends AppCompatActivity {
         }
         if(itemId == R.id.action_delete_product){
             Toast.makeText(this, "You have clicked the delete menu item.", Toast.LENGTH_SHORT).show();
-            if(editmode){
-                int input = id;
-                mDbManipulator.deleteProductAt(input);
-            }
-                Intent intent = new Intent(this, MainActivity.class);
-                startActivity(intent);
+            showDeleteConfirmationDialog();
 
             return true;
         }
