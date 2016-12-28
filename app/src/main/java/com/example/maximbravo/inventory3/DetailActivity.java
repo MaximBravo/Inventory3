@@ -29,10 +29,12 @@ public class DetailActivity extends AppCompatActivity {
     private EditText nameEditText;
     private EditText quantityEditText;
     private EditText priceEditText;
+    private EditText emailEditText;
 
     private String name;
     private int quantity;
     private double price;
+    private String email;
 
     private Button incrementButton;
     private Button decrementButton;
@@ -49,6 +51,8 @@ public class DetailActivity extends AppCompatActivity {
         nameEditText = (EditText) findViewById(R.id.edit_product_name);
         quantityEditText = (EditText) findViewById(R.id.edit_product_quantity);
         priceEditText = (EditText) findViewById(R.id.edit_product_price);
+        emailEditText = (EditText) findViewById(R.id.edit_supplier);
+
         quantity = Integer.parseInt(quantityEditText.getText().toString());
 
         incrementButton = (Button) findViewById(R.id.increment_button);
@@ -79,7 +83,8 @@ public class DetailActivity extends AppCompatActivity {
         String[] projection = {
                 ProductEntry.COLUMN_PRODUCT_NAME,
                 ProductEntry.COLUMN_PRODUCT_PRICE,
-                ProductEntry.COLUMN_PRODUCT_QUANTITY
+                ProductEntry.COLUMN_PRODUCT_QUANTITY,
+                ProductEntry.COLUMN_PRODUCT_EMAIL
         };
 
 // Filter results WHERE "title" = 'My Title'
@@ -102,10 +107,12 @@ public class DetailActivity extends AppCompatActivity {
         String itemName = cursor.getString(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_NAME));
         int itemquantity = cursor.getInt(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_QUANTITY));
         double itemprice = cursor.getDouble(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_PRICE));
+        String email = cursor.getString(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_EMAIL));
 
         nameEditText.setText(itemName);
         quantityEditText.setText(""+itemquantity);
         priceEditText.setText(""+itemprice);
+        emailEditText.setText(email);
         cursor.close();
     }
     public void increment(View view){
@@ -134,8 +141,13 @@ public class DetailActivity extends AppCompatActivity {
             price = Double.parseDouble(priceEditText.getText().toString());
         }
 
+        email = emailEditText.getText().toString();
         if(name.length() < 1){
             Toast.makeText(this, "You must supply a name", Toast.LENGTH_SHORT).show();
+            savePet = false;
+        }
+        if(email.length() < 7){
+            Toast.makeText(this, "You must supply a real email", Toast.LENGTH_SHORT).show();
             savePet = false;
         }
         if(price == -1){
@@ -144,7 +156,7 @@ public class DetailActivity extends AppCompatActivity {
         }
         if(savePet){
             if(!editmode) {
-                mDbManipulator.insertProductWithValues(name, quantity, price);
+                mDbManipulator.insertProductWithValues(name, quantity, price, email);
             } else {
                 updateRow();
             }
@@ -153,6 +165,15 @@ public class DetailActivity extends AppCompatActivity {
         }
 
     }
+    public void orderMore(View view){
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+        intent.putExtra(Intent.EXTRA_EMAIL, email);
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Order More " + name);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        }
+    }
     public void updateRow(){
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
@@ -160,6 +181,7 @@ public class DetailActivity extends AppCompatActivity {
         values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_NAME, nameEditText.getText().toString());
         values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_QUANTITY, Integer.parseInt(quantityEditText.getText().toString()));
         values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_PRICE, Double.parseDouble(priceEditText.getText().toString()));
+        values.put(ProductEntry.COLUMN_PRODUCT_EMAIL, emailEditText.getText().toString());
 
         String selection = ProductEntry._ID + " = ?";
         String[] selectionArgs = { ""+(id) };

@@ -21,11 +21,12 @@ public class ProductDbManiplator {
         long newRowId = writableDb.insert(ProductContract.ProductEntry.TABLE_NAME, null, values);
     }
 
-    public void insertProductWithValues(String name, int quantity, double price){
+    public void insertProductWithValues(String name, int quantity, double price, String email){
         ContentValues values = new ContentValues();
         values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_NAME, name);
         values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_QUANTITY, quantity);
         values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_PRICE, price);
+        values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_EMAIL, email);
         long newRowId = writableDb.insert(ProductContract.ProductEntry.TABLE_NAME, null, values);
     }
 

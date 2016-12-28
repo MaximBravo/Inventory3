@@ -19,7 +19,8 @@ public class ProductDbHelper extends SQLiteOpenHelper {
             + ProductEntry._ID + " INTEGER PRIMARY KEY, "
             + ProductEntry.COLUMN_PRODUCT_NAME + " TEXT NOT NULL, "
             + ProductEntry.COLUMN_PRODUCT_QUANTITY + " INTEGER NOT NULL, "
-            + ProductEntry.COLUMN_PRODUCT_PRICE + " INTEGER NOT NULL);";
+            + ProductEntry.COLUMN_PRODUCT_PRICE + " INTEGER NOT NULL, "
+            + ProductEntry.COLUMN_PRODUCT_EMAIL + " TEXT NOT NULL); ";
 
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + ProductEntry.TABLE_NAME;

@@ -53,9 +53,11 @@ public class MainActivity extends AppCompatActivity {
         //initialize dbhelper
         mDbHelper = new ProductDbHelper(getApplicationContext());
 
+
         ListView productListView = (ListView) findViewById(R.id.list);
 
-
+        View emptyView = findViewById(R.id.empty_view);
+        productListView.setEmptyView(emptyView);
 
         mCursorAdapter = new ProductCursorAdapter(this, null);
         productListView.setAdapter(mCursorAdapter);
