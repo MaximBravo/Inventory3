@@ -65,8 +65,8 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                Toast.makeText(MainActivity.this, "You clicked on the " + id + " element", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-                intent.putExtra("id", position);
-                intent.putExtra("position", id);
+                intent.putExtra("idandposition", ""+ id + "," + position);
+
                 startActivity(intent);
             }
         });

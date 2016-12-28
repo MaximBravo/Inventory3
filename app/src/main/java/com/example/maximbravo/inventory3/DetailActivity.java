@@ -58,11 +58,15 @@ public class DetailActivity extends AppCompatActivity {
         mDbManipulator = new ProductDbManiplator(this);
 
         Intent intent = getIntent();
-        id = intent.getIntExtra("id", -1);
-        position = intent.getIntExtra("position", -1);
-        if(id >= 0){
+        String idandposition = intent.getStringExtra("idandposition");
+        if(idandposition != null) {
+            String[] idcommapostion = idandposition.split(",");
+            id = Integer.parseInt(idcommapostion[0]);
+            position = Integer.parseInt(idcommapostion[1]);
+
             editmode = true;
             populatePageWith(id);
+
         }
 
     }
@@ -94,7 +98,7 @@ public class DetailActivity extends AppCompatActivity {
                 null                                 // The sort order
         );
         cursor.moveToFirst();
-        cursor.move(id);
+        cursor.move(position);
         String itemName = cursor.getString(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_NAME));
         int itemquantity = cursor.getInt(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_QUANTITY));
         double itemprice = cursor.getDouble(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_PRICE));
@@ -121,6 +125,10 @@ public class DetailActivity extends AppCompatActivity {
         boolean savePet = true;
         price = -1;
         name = nameEditText.getText().toString();
+        if(quantityEditText.getText().toString().length() > 9){
+            Toast.makeText(this, "Please have a smaller quantity", Toast.LENGTH_SHORT).show();
+            return;
+        }
         quantity = Integer.parseInt(quantityEditText.getText().toString());
         if(priceEditText.getText().toString().length() >= 1) {
             price = Double.parseDouble(priceEditText.getText().toString());
@@ -154,7 +162,7 @@ public class DetailActivity extends AppCompatActivity {
         values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_PRICE, Double.parseDouble(priceEditText.getText().toString()));
 
         String selection = ProductEntry._ID + " = ?";
-        String[] selectionArgs = { ""+(id+1) };
+        String[] selectionArgs = { ""+(id) };
 
         int count = db.update(
                 ProductEntry.TABLE_NAME,
@@ -174,16 +182,23 @@ public class DetailActivity extends AppCompatActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        int itemId = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_add_product) {
+        if (itemId == R.id.action_add_product) {
             Toast.makeText(this, "You clicked the check menu item.", Toast.LENGTH_LONG).show();
             saveProduct();
             return true;
         }
-        if(id == R.id.action_delete_product){
+        if(itemId == R.id.action_delete_product){
             Toast.makeText(this, "You have clicked the delete menu item.", Toast.LENGTH_SHORT).show();
+            if(editmode){
+                int input = id;
+                mDbManipulator.deleteProductAt(input);
+            }
+                Intent intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
+
             return true;
         }
 

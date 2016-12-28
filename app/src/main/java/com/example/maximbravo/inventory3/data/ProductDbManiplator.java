@@ -31,7 +31,7 @@ public class ProductDbManiplator {
 
     public void deleteProductAt(int position){
         // Define 'where' part of query.
-        String selection = ProductContract.ProductEntry._ID;
+        String selection = ProductContract.ProductEntry._ID + " = ?";
         // Specify arguments in placeholder order.
         String[] selectionArgs = { ""+position };
         // Issue SQL statement.
