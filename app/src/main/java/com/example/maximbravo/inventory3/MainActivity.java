@@ -43,19 +43,15 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-                //showDummyProducts();
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                 intent.putExtra("id", -1);
                 startActivity(intent);
             }
         });
 
-        //initialize output textView
         output = (TextView) findViewById(R.id.output);
 
-        //initialize dbhelper
+
         mDbHelper = new ProductDbHelper(getApplicationContext());
 
 
@@ -71,16 +67,10 @@ public class MainActivity extends AppCompatActivity {
         productListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-//                if(view.equals(saleButton)){
-//                    theId = (int) id;
-//                    thePosition = position;
-//                    updateQuantity();
-//                } else {
-                    Toast.makeText(MainActivity.this, "You clicked on the " + id + " element", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-                    intent.putExtra("idandposition", "" + id + "," + position);
-                    startActivity(intent);
-                //}
+                Toast.makeText(MainActivity.this, "You clicked on the " + id + " element", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+                intent.putExtra("idandposition", "" + id + "," + position);
+                startActivity(intent);
             }
         });
         showDummyProducts();
@@ -134,8 +124,6 @@ public class MainActivity extends AppCompatActivity {
         values.put(ProductEntry.COLUMN_PRODUCT_NAME, name);
         values.put(ProductEntry.COLUMN_PRODUCT_QUANTITY, quantity);
         values.put(ProductEntry.COLUMN_PRODUCT_PRICE, price);
-
-        //long newRowId = db.insert(ProductEntry.TABLE_NAME, null, values);
 
         showDummyProducts();
     }

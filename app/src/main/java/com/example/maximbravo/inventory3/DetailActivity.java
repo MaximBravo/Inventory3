@@ -102,8 +102,6 @@ public class DetailActivity extends AppCompatActivity {
     public void populatePageWith(int id){
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-// Define a projection that specifies which columns from the database
-// you will actually use after this query.
         String[] projection = {
                 ProductEntry.COLUMN_PRODUCT_NAME,
                 ProductEntry.COLUMN_PRODUCT_PRICE,
@@ -113,13 +111,13 @@ public class DetailActivity extends AppCompatActivity {
         };
 
         Cursor cursor = db.query(
-                ProductEntry.TABLE_NAME,                     // The table to query
-                projection,                               // The columns to return
-                null,                                // The columns for the WHERE clause
-                null,                            // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                null                                 // The sort order
+                ProductEntry.TABLE_NAME,
+                projection,
+                null,
+                null,
+                null,
+                null,
+                null
         );
         cursor.moveToFirst();
         cursor.move(position);
@@ -209,7 +207,7 @@ public class DetailActivity extends AppCompatActivity {
     }
     public void orderMore(View view){
         Intent intent = new Intent(Intent.ACTION_SENDTO);
-        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+        intent.setData(Uri.parse("mailto:"));
         intent.putExtra(Intent.EXTRA_RESULT_RECEIVER, email);
         intent.putExtra(Intent.EXTRA_SUBJECT, "Order More " + nameEditText.getText().toString());
         if (intent.resolveActivity(getPackageManager()) != null) {
@@ -237,63 +235,48 @@ public class DetailActivity extends AppCompatActivity {
     }
     private void showUnsavedChangesDialog(
             DialogInterface.OnClickListener discardButtonClickListener) {
-        // Create an AlertDialog.Builder and set the message, and click listeners
-        // for the positive and negative buttons on the dialog.
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Would you like to discard changes?");
         builder.setPositiveButton("Discard", discardButtonClickListener);
         builder.setNegativeButton("Keep Editing", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                // User clicked the "Keep editing" button, so dismiss the dialog
-                // and continue editing the pet.
+
                 if (dialog != null) {
                     dialog.dismiss();
                 }
             }
         });
 
-        // Create and show the AlertDialog
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
     @Override
     public void onBackPressed() {
-
-
-        // Otherwise if there are unsaved changes, setup a dialog to warn the user.
-        // Create a click listener to handle the user confirming that changes should be discarded.
         DialogInterface.OnClickListener discardButtonClickListener =
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        // User clicked "Discard" button, close the current activity.
                         finish();
                     }
                 };
-
-        // Show dialog that there are unsaved changes
         showUnsavedChangesDialog(discardButtonClickListener);
     }
-    // convert from bitmap to byte array
     public static byte[] getBytes(Bitmap bitmap) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 0, stream);
         return stream.toByteArray();
     }
-
-    // convert from byte array to bitmap
     public static Bitmap getImage(byte[] image) {
         return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_detail, menu);
         return true;
     }
     boolean result = false;
     private void showDeleteConfirmationDialog() {
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Would you like to delete this product?");
         builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
@@ -322,12 +305,7 @@ public class DetailActivity extends AppCompatActivity {
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int itemId = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
         if (itemId == R.id.action_add_product) {
             Toast.makeText(this, "You clicked the check menu item.", Toast.LENGTH_LONG).show();
             saveProduct();
