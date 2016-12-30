@@ -14,10 +14,12 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.maximbravo.inventory3.data.ProductContract;
 import com.example.maximbravo.inventory3.data.ProductContract.ProductEntry;
 import com.example.maximbravo.inventory3.data.ProductDbHelper;
 
@@ -25,8 +27,11 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     private TextView output;
-    private ProductDbHelper mDbHelper;
-    private ProductCursorAdapter mCursorAdapter;
+    private static ProductDbHelper mDbHelper;
+    private static ProductCursorAdapter mCursorAdapter;
+    private static int theId;
+    private TextView saleButton;
+    private static int thePosition;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,17 +64,23 @@ public class MainActivity extends AppCompatActivity {
         View emptyView = findViewById(R.id.empty_view);
         productListView.setEmptyView(emptyView);
 
+        saleButton = (TextView) findViewById(R.id.sale_button);
         mCursorAdapter = new ProductCursorAdapter(this, null);
         productListView.setAdapter(mCursorAdapter);
 
         productListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-               Toast.makeText(MainActivity.this, "You clicked on the " + id + " element", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-                intent.putExtra("idandposition", ""+ id + "," + position);
-
-                startActivity(intent);
+//                if(view.equals(saleButton)){
+//                    theId = (int) id;
+//                    thePosition = position;
+//                    updateQuantity();
+//                } else {
+                    Toast.makeText(MainActivity.this, "You clicked on the " + id + " element", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+                    intent.putExtra("idandposition", "" + id + "," + position);
+                    startActivity(intent);
+                //}
             }
         });
         showDummyProducts();
@@ -77,23 +88,54 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+    public static void updateQuantity(int pos) {
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        SQLiteDatabase dbr = mDbHelper.getReadableDatabase();
+        String[] projection = {
+                ProductEntry._ID,
+                ProductEntry.COLUMN_PRODUCT_QUANTITY
+        };
+        Cursor cursor = dbr.query(
+                ProductEntry.TABLE_NAME,                     // The table to query
+                projection,                               // The columns to return
+                null,                                // The columns for the WHERE clause
+                null,                            // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                null                                 // The sort order
+        );
+        cursor.moveToFirst();
+        cursor.move(pos);
+        int itemquantity = cursor.getInt(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_QUANTITY));
+        theId = cursor.getInt(cursor.getColumnIndexOrThrow(ProductEntry._ID));
+        cursor.close();
 
+        if(itemquantity != 0) {
+            ContentValues values = new ContentValues();
+            values.put(ProductContract.ProductEntry.COLUMN_PRODUCT_QUANTITY, itemquantity-1);
+            String selection = ProductEntry._ID + " = ?";
+            String[] selectionArgs = {"" + (theId)};
+            int count = db.update(
+                    ProductEntry.TABLE_NAME,
+                    values,
+                    selection,
+                    selectionArgs);
+        }
+        showDummyProducts();
+    }
     public void insertDummyProduct(){
-        // Gets the data repository in write mode
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
-        //fake values
         String name = "Jumbo Minnion";
         int quantity = 5;
         double price = 15.45;
-        // Create a new map of values, where column names are the keys
+
         ContentValues values = new ContentValues();
         values.put(ProductEntry.COLUMN_PRODUCT_NAME, name);
         values.put(ProductEntry.COLUMN_PRODUCT_QUANTITY, quantity);
         values.put(ProductEntry.COLUMN_PRODUCT_PRICE, price);
 
-        // Insert the new row, returning the primary key value of the new row
-        long newRowId = db.insert(ProductEntry.TABLE_NAME, null, values);
+        //long newRowId = db.insert(ProductEntry.TABLE_NAME, null, values);
 
         showDummyProducts();
     }
@@ -102,21 +144,15 @@ public class MainActivity extends AppCompatActivity {
         db.delete(ProductEntry.TABLE_NAME, null, null);
         showDummyProducts();
     }
-    public void showDummyProducts(){
+    public static void showDummyProducts(){
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-        // Define a projection that specifies which columns from the database
-        // you will actually use after this query.
         String[] projection = {
                 ProductEntry._ID,
                 ProductEntry.COLUMN_PRODUCT_NAME,
                 ProductEntry.COLUMN_PRODUCT_QUANTITY,
                 ProductEntry.COLUMN_PRODUCT_PRICE
         };
-
-//        // Filter results WHERE "title" = 'My Title'
-//        String selection = ProductEntry.COLUMN_NAME_TITLE + " = ?";
-//        String[] selectionArgs = { "My Title" };
 
         Cursor cursor = db.query(
                 ProductEntry.TABLE_NAME,                  // The table to query
@@ -129,25 +165,18 @@ public class MainActivity extends AppCompatActivity {
         );
 
         mCursorAdapter.swapCursor(cursor);
-
-
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_add_dummy_product) {
             Toast.makeText(this, "You clicked the Add Product menu item.", Toast.LENGTH_LONG).show();
             insertDummyProduct();

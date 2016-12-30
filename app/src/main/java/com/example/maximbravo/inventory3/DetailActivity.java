@@ -112,12 +112,6 @@ public class DetailActivity extends AppCompatActivity {
                 ProductEntry.COLUMN_PRODUCT_IMAGE
         };
 
-// Filter results WHERE "title" = 'My Title'
-        String selection = ProductEntry._ID + " = ?";
-        String[] selectionArgs = { "" + id };
-
-
-
         Cursor cursor = db.query(
                 ProductEntry.TABLE_NAME,                     // The table to query
                 projection,                               // The columns to return
